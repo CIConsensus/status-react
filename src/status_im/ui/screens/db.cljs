@@ -117,10 +117,10 @@
                   :group/group-type
                   :group/selected-contacts
                   :group/groups-order
+                  :accounts/account
                   :accounts/accounts
                   :accounts/account-creation?
                   :accounts/creating-account?
-                  :accounts/current-account-id
                   :accounts/recover
                   :accounts/login
                   :my-profile/drawer
@@ -176,7 +176,7 @@
                   :chat/message-data
                   :chat/message-status
                   :chat/selected-participants
-                  :chat/chat-loaded-callbacks 
+                  :chat/chat-loaded-callbacks
                   :chat/public-group-topic
                   :chat/confirmation-code-sms-listener
                   :chat/messages

@@ -175,7 +175,7 @@
     (update-in db [:chats chat-id :messages message-id] assoc :appearing? false)))
 
 (defn init-console-chat
-  [{:keys [chats] :accounts/keys [current-account-id] :as db}]
+  [{:keys [chats] :accounts/keys [account] :as db}]
   (if (chats const/console-chat-id)
     {:db db}
     (cond-> {:db (-> db
@@ -185,7 +185,7 @@
              :save-chat console-chat/chat
              :save-all-contacts [console-chat/contact]}
 
-      (not current-account-id)
+      (not (:address account))
       (update :dispatch-n concat [[:chat-received-message/add-when-commands-loaded console-chat/intro-message1]]))))
 
 (handlers/register-handler-fx
