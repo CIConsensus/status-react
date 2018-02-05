@@ -2,13 +2,11 @@
   (:require-macros [status-im.utils.db :refer [allowed-keys]])
   (:require [cljs.spec.alpha :as spec]
             status-im.utils.db
-            [clojure.string :as string]
-            [status-im.data-store.contacts :as contacts]))
+            [clojure.string :as string]))
 
-(defn contact-can-be-added? [identity]
-  (if (contacts/exists? identity)
-    (:pending? (contacts/get-by-id identity))
-    true))
+(defn contact-can-be-added? [identity contacts]
+  (let [contact (get contacts identity)]
+    (not (:pending? contact))))
 
 ;;;; DB
 

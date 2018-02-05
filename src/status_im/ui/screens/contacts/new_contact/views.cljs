@@ -16,7 +16,7 @@
             [status-im.utils.platform :as platform]))
 
 (defn- validation-error-message
-  [whisper-identity {:keys [address public-key]} error]
+  [whisper-identity {:keys [address public-key]} error contacts]
   (cond
     (#{(hex/normalize-hex address) (hex/normalize-hex public-key)}
       (hex/normalize-hex whisper-identity))
@@ -25,13 +25,13 @@
     (not (s/valid? :global/public-key whisper-identity))
     (i18n/label :t/enter-valid-public-key)
 
-    (not (v/contact-can-be-added? whisper-identity))
+    (not (v/contact-can-be-added? whisper-identity contacts))
     (i18n/label :t/contact-already-added)
 
     :else error))
 
-(defn- toolbar-actions [new-contact-identity account error]
-  (let [error-message (validation-error-message new-contact-identity account error)]
+(defn- toolbar-actions [new-contact-identity account error contacts]
+  (let [error-message (validation-error-message new-contact-identity account error contacts)]
     [{:icon                :icons/ok
       :icon-opts           {:color (if (string/blank? error-message)
                                      components.styles/color-blue4
@@ -40,10 +40,10 @@
                               (re-frame/dispatch [:add-contact-handler new-contact-identity]))
       :accessibility-label :confirm-button}]))
 
-(defview contact-whisper-id-input [whisper-identity error]
+(defview contact-whisper-id-input [whisper-identity error contacts]
   (letsubs [current-account [:get-current-account]]
     (let [error (when-not (string/blank? whisper-identity)
-                  (validation-error-message whisper-identity current-account error))]
+                  (validation-error-message whisper-identity current-account error contacts))]
       [react/view button-input-container
        [text-field/text-field
         {:error               error
@@ -64,15 +64,16 @@
 (defview new-contact []
   (letsubs [new-contact-identity [:get :contacts/new-identity]
             error [:get :contacts/new-public-key-error]
-            account [:get-current-account]]
+            account [:get-current-account]
+            contacts [:get-contacts]]
     [react/view st/contact-form-container
      [status-bar/status-bar]
      [toolbar/toolbar {}
       toolbar/default-nav-back
       [toolbar/content-title (i18n/label :t/add-new-contact)]
-      [toolbar/actions (toolbar-actions new-contact-identity account error)]]
+      [toolbar/actions (toolbar-actions new-contact-identity account error contacts)]]
      [react/view st/form-container
-      [contact-whisper-id-input new-contact-identity error]]
+      [contact-whisper-id-input new-contact-identity error contacts]]
      [react/view st/address-explication-container
       [react/text {:style st/address-explication
                    :font  :default}
