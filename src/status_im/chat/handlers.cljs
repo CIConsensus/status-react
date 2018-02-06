@@ -39,23 +39,22 @@
    (fn [{:keys [current-public-key web3 chats]}
         [_ {:keys                                [from]
             {:keys [group-id keypair timestamp]} :payload}]]
-     (let [{:keys [private public]} keypair]
-       (let [chat (get chats group-id)
-             {:keys [group-admin is-active]} chat]
-         (when (and (= from group-admin)
-                    (or (nil? chat)
-                        (chats/new-update? timestamp chat)))
-           (dispatch [:update-chat! {:chat-id     group-id
-                                     :public-key  public
-                                     :private-key private
-                                     :updated-at  timestamp}])
-           (when is-active
-             (protocol/start-watching-group!
-              {:web3     web3
-               :group-id group-id
-               :identity current-public-key
-               :keypair  keypair
-               :callback #(dispatch [:incoming-message %1 %2])}))))))))
+     (let [{:keys [private public]} keypair
+           {:keys [group-admin is-active] :as chat} (get chats group-id)]
+       (when (and (= from group-admin)
+                   (or (nil? chat)
+                       (chats/new-update? timestamp chat)))
+          (dispatch [:update-chat! {:chat-id     group-id
+                                    :public-key  public
+                                    :private-key private
+                                    :updated-at  timestamp}])
+          (when is-active
+            (protocol/start-watching-group!
+             {:web3     web3
+              :group-id group-id
+              :identity current-public-key
+              :keypair  keypair
+              :callback #(dispatch [:incoming-message %1 %2])})))))))
 
 (reg-fx
   ::start-watching-group
