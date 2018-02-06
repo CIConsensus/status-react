@@ -71,42 +71,42 @@
 
 ;;;; Effects
 
-(def ^:private realm-queue (async-utils/task-queue 200))
+(def ^:private realm-queue (async-utils/task-queue 2000))
 
 (re-frame/reg-fx
   :update-message
   (fn [message]
-    (async/put! realm-queue #(messages-store/update-message message))))
+    (async/go (async/>! realm-queue #(messages-store/update-message message)))))
 
 (re-frame/reg-fx
   :save-message
   (fn [message]
-    (async/put! realm-queue #(messages-store/save message))))
+    (async/go (async/>! realm-queue #(messages-store/save message)))))
 
 (re-frame/reg-fx
   :delete-messages
   (fn [chat-id]
-    (async/put! realm-queue #(messages-store/delete-by-chat-id chat-id))))
+    (async/go (async/>! realm-queue #(messages-store/delete-by-chat-id chat-id)))))
 
 (re-frame/reg-fx
   :delete-pending-messages
   (fn [chat-id]
-    (async/put! realm-queue #(pending-messages-store/delete-all-by-chat-id chat-id))))
+    (async/go (async/>! realm-queue #(pending-messages-store/delete-all-by-chat-id chat-id)))))
 
 (re-frame/reg-fx
   :save-chat
   (fn [chat]
-    (async/put! realm-queue #(chats-store/save chat))))
+    (async/go (async/>! realm-queue #(chats-store/save chat)))))
 
 (re-frame/reg-fx
   :deactivate-chat
   (fn [chat-id]
-    (async/put! realm-queue #(chats-store/set-inactive chat-id))))
+    (async/go (async/>! realm-queue #(chats-store/set-inactive chat-id)))))
 
 (re-frame/reg-fx
   :delete-chat
   (fn [chat-id]
-    (async/put! realm-queue #(chats-store/delete chat-id))))
+    (async/go (async/>! realm-queue #(chats-store/delete chat-id)))))
 
 (re-frame/reg-fx
   :protocol-send-seen
