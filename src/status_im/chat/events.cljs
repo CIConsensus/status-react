@@ -84,19 +84,14 @@
     (async/put! realm-queue #(messages-store/save message))))
 
 (re-frame/reg-fx
-  :delete-chat-messages
-  (fn [{:keys [chat-id group-chat debug?]}]
-    (when (or group-chat debug?)
-      (async/put! realm-queue #(messages-store/delete-by-chat-id chat-id)))
-    (async/put! realm-queue #(pending-messages-store/delete-all-by-chat-id chat-id))))
+  :delete-messages
+  (fn [chat-id]
+    (async/put! realm-queue #(messages-store/delete-by-chat-id chat-id))))
 
 (re-frame/reg-fx
-  :update-message-overhead
-  (fn [[chat-id network-status]]
-    (let [update-fn (if (= network-status :offline)
-                      chats-store/inc-message-overhead
-                      chats-store/reset-message-overhead)]
-      (async/put! realm-queue #(update-fn chat-id)))))
+  :delete-pending-messages
+  (fn [chat-id]
+    (async/put! realm-queue #(pending-messages-store/delete-all-by-chat-id chat-id))))
 
 (re-frame/reg-fx
   :save-chat
@@ -104,16 +99,14 @@
     (async/put! realm-queue #(chats-store/save chat))))
 
 (re-frame/reg-fx
-  :delete-chat
-  (fn [{:keys [chat-id debug?]}]
-    (if debug?
-      (async/put! realm-queue #(chats-store/delete chat-id))
-      (async/put! realm-queue #(chats-store/set-inactive chat-id)))))
+  :deactivate-chat
+  (fn [chat-id]
+    (async/put! realm-queue #(chats-store/set-inactive chat-id))))
 
 (re-frame/reg-fx
-  :save-all-contacts
-  (fn [contacts]
-    (contacts-store/save-all contacts)))
+  :delete-chat
+  (fn [chat-id]
+    (async/put! realm-queue #(chats-store/delete chat-id))))
 
 (re-frame/reg-fx
   :protocol-send-seen
@@ -355,9 +348,14 @@
   :remove-chat
   [re-frame/trim-v]
   (fn [{:keys [db]} [chat-id]]
-    (let [chat (get-in db [:chats chat-id])]
-      {:db                  (-> db
-                                (update :chats dissoc chat-id)
-                                (update :deleted-chats (fnil conj #{}) chat-id))
-       :delete-chat          chat
-       :delete-chat-messages chat})))
+    (let [{:keys [chat-id group-chat debug?]} (get-in db [:chats chat-id])]
+      (cond-> {:db                      (-> db
+                                            (update :chats dissoc chat-id)
+                                            (update :deleted-chats (fnil conj #{}) chat-id))
+               :delete-pending-messages chat-id}
+        (or group-chat debug?)
+        (assoc :delete-messages chat-id)
+        debug?
+        (assoc :delete-chat chat-id)
+        (not debug?)
+        (assoc :deactivate-chat chat-id)))))
