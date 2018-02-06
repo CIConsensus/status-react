@@ -86,7 +86,7 @@
 
 (defn new-update? [timestamp chat]
   (let
-      [{:keys [added-to-at removed-at removed-from-at added-at]}
+      [{:keys [added-to-at removed-at removed-from-at]}
        (get-by-id chat-id)]
     (and (> timestamp added-to-at)
          (> timestamp removed-at)
