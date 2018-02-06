@@ -39,6 +39,12 @@
       (not current-chat?)
       (update-in [:chats chat-id :unviewed-messages] (fnil conj #{}) message-id))))
 
+(defn- pop-up-chat? [chats chat-id]
+  (let [chat       (get chats chat-id)
+        is-active? (get chat :is-active)]
+    (or (nil? chat)
+        is-active?)))
+
 (defn receive
   [{:keys [db now] :as cofx}
    {:keys [from group-id chat-id content-type content message-id timestamp clock-value]

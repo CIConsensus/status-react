@@ -1,5 +1,6 @@
 (ns status-im.data-store.chats
-  (:require [status-im.data-store.realm.chats :as data-store])
+  (:require [status-im.data-store.realm.chats :as data-store]
+            [clojure.set :as set])
   (:refer-clojure :exclude [exists?]))
 
 (defn get-all
@@ -35,8 +36,13 @@
   (data-store/get-contacts chat-id))
 
 (defn has-contact?
-  [chat-id identity]
-  (data-store/has-contact? chat-id identity))
+  [{:keys [contacts]} identity]
+  (let [identities (set (map :identity contacts))]
+    (-> [identity]
+        set
+        (set/intersection identities)
+        seq
+        boolean)))
 
 (defn add-contacts
   [chat-id identities]
@@ -53,10 +59,6 @@
 (defn get-property
   [chat-id property-name]
   (data-store/get-property chat-id property-name))
-
-(defn is-active?
-  [chat-id]
-  (get-property chat-id :is-active))
 
 (defn removed-at
   [chat-id]
@@ -82,12 +84,10 @@
   [chat-id]
   (save-property chat-id :message-overhead 0))
 
-(defn new-update?
-  [timestamp chat-id]
+(defn new-update? [timestamp chat]
   (let
       [{:keys [added-to-at removed-at removed-from-at added-at]}
        (get-by-id chat-id)]
     (and (> timestamp added-to-at)
          (> timestamp removed-at)
-         (> timestamp removed-from-at)
-         (> timestamp added-at))))
+         (> timestamp removed-from-at))))

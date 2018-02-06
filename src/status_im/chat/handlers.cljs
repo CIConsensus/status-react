@@ -40,15 +40,15 @@
         [_ {:keys                                [from]
             {:keys [group-id keypair timestamp]} :payload}]]
      (let [{:keys [private public]} keypair]
-       (let [is-active (chats/is-active? group-id)
-             chat      {:chat-id     group-id
-                        :public-key  public
-                        :private-key private
-                        :updated-at  timestamp}]
-         (when (and (= from (get-in chats [group-id :group-admin]))
-                    (or (not (chats/exists? group-id))
-                        (chats/new-update? timestamp group-id)))
-           (dispatch [:update-chat! chat])
+       (let [chat (get chats group-id)
+             {:keys [group-admin is-active]} chat]
+         (when (and (= from group-admin)
+                    (or (nil? chat)
+                        (chats/new-update? timestamp chat)))
+           (dispatch [:update-chat! {:chat-id     group-id
+                                     :public-key  public
+                                     :private-key private
+                                     :updated-at  timestamp}])
            (when is-active
              (protocol/start-watching-group!
               {:web3     web3
@@ -162,7 +162,8 @@
       (let [contacts' (keep (fn [ident]
                               (when (not= ident current-public-key)
                                 {:identity ident})) contacts)
-            chat      {:chat-id     group-id
+            chat      (get-in db [:chats group-id])
+            new-chat  {:chat-id     group-id
                        :name        group-name
                        :group-chat  true
                        :group-admin from
@@ -172,14 +173,15 @@
                        :added-to-at timestamp
                        :timestamp   timestamp
                        :is-active   true}
-            exists?   (chats/exists? group-id)]
-        (when (or (not exists?) (chats/new-update? timestamp group-id))
+            exists?   (not (nil? chat))]
+        (when (or (not exists?)
+                  (chats/new-update? timestamp chat))
           {::start-watching-group (merge {:group-id group-id
                                           :keypair keypair}
                                          (select-keys db [:web3 :current-public-key]))
            :dispatch (if exists?
-                       [:update-chat! chat]
-                       [:add-chat group-id chat])})))))
+                       [:update-chat! new-chat]
+                       [:add-chat group-id new-chat])})))))
 
 (register-handler-fx
   :show-profile
