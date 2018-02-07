@@ -15,6 +15,7 @@
             [status-im.protocol.message-cache :as cache]
             [status-im.protocol.listeners :as listeners]
             [status-im.chat.models.message :as models.message]
+            [status-im.chat.models :as chat]
             [status-im.protocol.web3.inbox :as inbox]
             [status-im.protocol.web3.keys :as web3.keys]
             [status-im.utils.datetime :as datetime] 
@@ -546,7 +547,7 @@
        [{:keys                                               [from]
          {:keys [group-id timestamp message-id] :as payload} :payload}]]
     (let [chat        (get-in db [:chats group-id])
-          new-update? (chats/new-update? timestamp chat)]
+          new-update? (chat/new-update? chat timestamp)]
       (when new-update?
         {::you-removed-from-group-message {:from       from
                                            :message-id message-id

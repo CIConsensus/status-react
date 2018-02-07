@@ -3,8 +3,8 @@
             [clojure.string :as string]
             [status-im.ui.components.styles :refer [default-chat-color]]
             [status-im.chat.constants :as chat-consts]
+            [status-im.chat.models :as chat]
             [status-im.protocol.core :as protocol]
-            [status-im.data-store.chats :as chats]
             [status-im.data-store.messages :as messages] 
             [status-im.constants :refer [text-content-type
                                          content-type-command
@@ -43,7 +43,7 @@
            {:keys [group-admin is-active] :as chat} (get chats group-id)]
        (when (and (= from group-admin)
                    (or (nil? chat)
-                       (chats/new-update? timestamp chat)))
+                       (chat/new-update? chat timestamp)))
           (dispatch [:update-chat! {:chat-id     group-id
                                     :public-key  public
                                     :private-key private
@@ -173,7 +173,7 @@
                        :timestamp   timestamp
                        :is-active   true}]
         (when (or (nil? chat)
-                  (chats/new-update? timestamp chat))
+                  (chat/new-update? chat timestamp))
           {::start-watching-group (merge {:group-id group-id
                                           :keypair keypair}
                                          (select-keys db [:web3 :current-public-key]))

@@ -74,10 +74,3 @@
 (defn reset-message-overhead
   [chat-id]
   (save-property chat-id :message-overhead 0))
-
-(defn new-update? [timestamp chat]
-  (let
-      [{:keys [added-to-at removed-at removed-from-at]} chat]
-    (and (> timestamp added-to-at)
-         (> timestamp removed-at)
-         (> timestamp removed-from-at))))
