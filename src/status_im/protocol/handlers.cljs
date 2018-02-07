@@ -519,6 +519,10 @@
 
 ;;GROUP
 
+(defn- has-contact? [{:keys [contacts]} identity]
+  (let [identities (set (map :identity contacts))]
+    (contains? identities identity)))
+
 (handlers/register-handler-fx
   :participant-invited-to-group
   [re-frame/trim-v]
@@ -531,7 +535,7 @@
         (merge {::participant-invited-to-group-message {:group-id group-id :current-public-key current-public-key
                                                         :identity identity :from from :message-id message-id
                                                         :timestamp timestamp}}
-               (when-not (and (= current-public-key identity) (chats/has-contact? chat identity))
+               (when-not (and (= current-public-key identity) (has-contact? chat identity))
                  {:db (update-in db [:chats group-id :contacts] conj {:identity identity})
                   ::chats-add-contact [group-id identity]}))))))
 

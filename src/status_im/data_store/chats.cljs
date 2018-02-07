@@ -35,15 +35,6 @@
   [chat-id]
   (data-store/get-contacts chat-id))
 
-(defn has-contact?
-  [{:keys [contacts]} identity]
-  (let [identities (set (map :identity contacts))]
-    (-> [identity]
-        set
-        (set/intersection identities)
-        seq
-        boolean)))
-
 (defn add-contacts
   [chat-id identities]
   (data-store/add-contacts chat-id identities))
