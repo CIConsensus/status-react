@@ -171,14 +171,13 @@
                        :contacts    contacts'
                        :added-to-at timestamp
                        :timestamp   timestamp
-                       :is-active   true}
-            exists?   (not (nil? chat))]
-        (when (or (not exists?)
+                       :is-active   true}]
+        (when (or (nil? chat)
                   (chats/new-update? timestamp chat))
           {::start-watching-group (merge {:group-id group-id
                                           :keypair keypair}
                                          (select-keys db [:web3 :current-public-key]))
-           :dispatch (if exists?
+           :dispatch (if chat
                        [:update-chat! new-chat]
                        [:add-chat group-id new-chat])})))))
 
